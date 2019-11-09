@@ -1,30 +1,28 @@
 var mongoose = require('mongoose');
 const nbaApi = require('./nbaApi')
 
-mongoose.connect('mongodb://localhost/nba', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
-let db = mongoose.connection;
 let Standing;
 
-const connect = callback => {
-  db.on('error', console.error.bind(console, 'connection error:'));
-  db.once('open', function() {
-
-    let standingSchema = new mongoose.Schema({
+const connect = () => {
+  console.log("Connecting to database")
+  return new Promise((resolve, reject) => {
+    mongoose.connect(process.env.DATABASE_PATH, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    })
+    .then(() => {
+      const standingSchema = new mongoose.Schema({
         teamId: String,
         win: String,
         loss: String,
         conference: String,
         rank: String
+      })
+      Standing = mongoose.model('Standing', standingSchema)
+      console.log("Connected to databse")
+      resolve()
     })
-
-    Standing = mongoose.model('Standing', standingSchema)
-
-    callback()
-    
+    .catch(err => reject(err))
   })
 }
 
@@ -44,7 +42,7 @@ const updateStandings = () => {
   return new Promise((resolve, reject) => {
     nbaApi.standings()
     .then(data => { 
-      standings = prepareStandings(data.api.standings)
+      const standings = prepareStandings(data.api.standings)
       return bulkWrite(standings)
     })
     .then(result => {

@@ -12,7 +12,8 @@ app.get('/standings', (req, res) => {
   .catch(err => { res.status(500).send(`An error occured: ${err}`); })
 })
 
-db.connect(() => {
+db.connect()
+.then(() => {
   app.listen(port, () => {
     console.log(`Listening on port ${port}`)
 
@@ -20,12 +21,13 @@ db.connect(() => {
       cronTime:'0 */30 * * * *',
       onTick: () => {
         db.updateStandings()
-        .catch(err => {console.log(`Failed to update standings: ${err}`)})
+        .catch(err => {console.log(`Failed to update standings: ${err}`); })
       },
       start: true,
       runOnInit: true, 
     })
   })
 })
+.catch((err) => { console.log(`Could not connect to database: ${err}`); })
 
 
