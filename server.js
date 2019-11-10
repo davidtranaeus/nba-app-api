@@ -4,7 +4,7 @@ require('dotenv').config()
 const db = require('./mongoose');
 const CronJob = require('cron').CronJob;
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.get('/standings', (req, res) => {
   db.getStandings()
