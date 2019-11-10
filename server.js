@@ -1,10 +1,12 @@
 const express = require('express')
-const app = express()
 require('dotenv').config()
+const cors = require('cors')
 const db = require('./mongoose');
 const CronJob = require('cron').CronJob;
 
 const port = process.env.PORT || 3001;
+const app = express();
+app.use(cors());
 
 app.get('/standings', (req, res) => {
   db.getStandings()
