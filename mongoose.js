@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 const nbaApi = require('./nbaApi')
 
-let Standing;
+let Team;
 
 const connect = () => {
   console.log("Connecting to database")
@@ -11,28 +11,33 @@ const connect = () => {
       useUnifiedTopology: true
     })
     .then(() => {
-      const standingSchema = new mongoose.Schema({
+      const teamSchema = new mongoose.Schema({
         teamId: String,
+        city: String,
+        fullName: String,
+        nickName: String,
+        logo: String,
         win: String,
         loss: String,
         conference: String,
         rank: String
       })
-      Standing = mongoose.model('Standing', standingSchema)
-      console.log("Connected to databse")
+
+      Team = mongoose.model('Team', teamSchema)
+      console.log("Connected to database")
       resolve()
     })
     .catch(err => reject(err))
   })
 }
 
-const getStandings = () => {
+const getTeams = () => {
   return new Promise((resolve, reject) => {
-    Standing.find((err, standings) => {
+    Team.find((err, teams) => {
       if (err) {
         reject(err);
       } else {
-        resolve(standings);
+        resolve(teams);
       }
     })
   })
@@ -42,8 +47,7 @@ const updateStandings = () => {
   return new Promise((resolve, reject) => {
     nbaApi.standings()
     .then(data => { 
-      const standings = prepareStandings(data.api.standings)
-      return bulkWrite(standings)
+      return bulkWriteStandings(data.api.standings)
     })
     .then(result => {
       console.log(`Updated standings:`)
@@ -57,7 +61,26 @@ const updateStandings = () => {
   })
 }
 
-const prepareStandings = (apiData) => {
+const bulkWriteStandings = (apiStandings) => {
+  const standings = filterStandings(apiStandings)
+
+  return Team.bulkWrite(standings.map((standing) => {
+    const { teamId, ...update } = standing;
+
+    return {
+      updateOne: {
+        filter: { teamId: teamId },
+        update: {
+          $setOnInsert: { teamId: teamId },
+          $set: update
+        },
+        upsert: true,
+      },
+    }
+  }))
+}
+
+const filterStandings = (apiData) => {
   return apiData.map((team) => {
     return {
       teamId: team.teamId,
@@ -69,25 +92,8 @@ const prepareStandings = (apiData) => {
   })
 }
 
-const bulkWrite = (standings) => {
-  return Standing.bulkWrite(standings.map((standing) => {
-    const { teamId, ...update} = standing;
-
-    return {
-      updateOne: {
-        filter: { teamId: teamId },
-        update: {
-          $setOnInsert: { teamId: teamId},
-          $set: update
-        },
-        upsert: true,
-      },
-    }
-  }))
-}
-
 module.exports = {
   connect,
-  getStandings,
+  getTeams,
   updateStandings
 }

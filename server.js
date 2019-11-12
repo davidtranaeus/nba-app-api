@@ -8,16 +8,17 @@ const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 
-app.get('/standings', (req, res) => {
-  db.getStandings()
-  .then(standings => { res.json(standings)})
+app.get('/teams', (req, res) => {
+  db.getTeams()
+  .then(teams => { res.json(teams); })
   .catch(err => { res.status(500).send(`An error occured: ${err}`); })
 })
 
+// TODO: Update team info if it is the first time the database is connected to
 db.connect()
 .then(() => {
   app.listen(port, () => {
-    console.log(`Listening on port ${port}`)
+    console.log(`Listening on port ${port}`);
 
     new CronJob({
       cronTime:'0 */30 * * * *',
