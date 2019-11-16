@@ -3,62 +3,38 @@ const nbaApi = require('./nbaApi')
 
 let Team;
 
-const connect = () => {
-  console.log("Connecting to database")
-  return new Promise((resolve, reject) => {
-    mongoose.connect(process.env.DATABASE_PATH, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    })
-    .then(() => {
-      const teamSchema = new mongoose.Schema({
-        teamId: String,
-        city: String,
-        fullName: String,
-        nickName: String,
-        logo: String,
-        win: String,
-        loss: String,
-        conference: String,
-        rank: String
-      })
-
-      Team = mongoose.model('Team', teamSchema)
-      console.log("Connected to database")
-      resolve()
-    })
-    .catch(err => reject(err))
+const connect = async () => {
+  // async functions returns a promise, automatically resolves, rejects
+  // await waits for a promise
+  await mongoose.connect(process.env.DATABASE_PATH, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
   })
+
+  const teamSchema = new mongoose.Schema({
+    teamId: String,
+    city: String,
+    fullName: String,
+    nickName: String,
+    logo: String,
+    win: String,
+    loss: String,
+    conference: String,
+    rank: String
+  })
+
+  Team = mongoose.model('Team', teamSchema)
 }
 
-const getTeams = () => {
-  return new Promise((resolve, reject) => {
-    Team.find((err, teams) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(teams);
-      }
-    })
-  })
+const getTeams = async () => {
+  return await Team.find()
 }
 
-const updateStandings = () => {
-  return new Promise((resolve, reject) => {
-    nbaApi.standings()
-    .then(data => { 
-      return bulkWriteStandings(data.api.standings)
-    })
-    .then(result => {
-      console.log(`Updated standings:`)
-      console.log(result)
-      resolve(result)
-    })
-    .catch(err => {
-      console.log(`Failed to update standings: ${err}`)
-      reject(err)
-    })
-  })
+const updateStandings = async () => {
+  const data = await nbaApi.standings()
+  const result = await bulkWriteStandings(data.api.standings)
+
+  return result
 }
 
 const bulkWriteStandings = (apiStandings) => {
