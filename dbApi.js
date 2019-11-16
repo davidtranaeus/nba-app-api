@@ -15,7 +15,7 @@ const connect = async () => {
     teamId: String,
     city: String,
     fullName: String,
-    nickName: String,
+    nickname: String,
     logo: String,
     win: String,
     loss: String,
@@ -38,6 +38,32 @@ const updateStandings = async () => {
   return result
 }
 
+const updateTeamInfo = async () => {
+  const teams = await getTeams();
+
+  const promises = teams.map(async team => {
+    const res = await nbaApi.teamInfo(team.teamId);
+    return res.api.teams[0]
+  })
+
+  const apiData = await Promise.all(promises);
+  
+  const teamInfo = mapDataToDatabaseTeamInfo(apiData)
+  const result = await bulkUpdate(teamInfo)
+
+  return result
+}
+
+const ensureDataExists = async () => {
+  const teams = await getTeams();
+
+  if (teams.length === 0) {
+    console.log('Database is empty. Gathering data..')
+    await updateStandings();
+    await updateTeamInfo();
+  }
+}
+
 const bulkUpdate = (updates) => {
   return Team.bulkWrite(updates.map((update) => {
     const { teamId, ...newData } = update;
@@ -55,13 +81,25 @@ const bulkUpdate = (updates) => {
 }
 
 const mapDataToDatabaseStandings = (apiData) => {
-  return apiData.map((team) => {
+  return apiData.map(team => {
     return {
       teamId: team.teamId,
       win: team.win,
       loss: team.loss,
       conference: team.conference.name,
-      rank: team.conference.rank
+      rank: team.conference.rank,
+    }
+  })
+}
+
+const mapDataToDatabaseTeamInfo = (apiData) => {
+  return apiData.map(team => {
+    return {
+      teamId: team.teamId,
+      city: team.city,
+      fullName: team.fullName,
+      nickname: team.nickname,
+      logo: team.logo,
     }
   })
 }
@@ -69,5 +107,6 @@ const mapDataToDatabaseStandings = (apiData) => {
 module.exports = {
   connect,
   getTeams,
-  updateStandings
+  updateStandings,
+  ensureDataExists,
 }

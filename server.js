@@ -14,8 +14,8 @@ app.get('/teams', (req, res) => {
   .catch(err => { res.status(500).send(`An error occured: ${err}`); })
 })
 
-// TODO: Update team info if it is the first time the database is connected to
 db.connect()
+.then(() => { return db.ensureDataExists(); })
 .then(() => {
   app.listen(port, () => {
     console.log(`Listening on port ${port}`);
