@@ -32,23 +32,21 @@ const getTeams = async () => {
 
 const updateStandings = async () => {
   const data = await nbaApi.standings()
-  const result = await bulkWriteStandings(data.api.standings)
+  const standings = mapDataToDatabaseStandings(data.api.standings)
+  const result = await bulkUpdate(standings)
 
   return result
 }
 
-const bulkWriteStandings = (apiStandings) => {
-  const standings = filterStandings(apiStandings)
-
-  return Team.bulkWrite(standings.map((standing) => {
-    const { teamId, ...update } = standing;
-
+const bulkUpdate = (updates) => {
+  return Team.bulkWrite(updates.map((update) => {
+    const { teamId, ...newData } = update;
     return {
       updateOne: {
         filter: { teamId: teamId },
         update: {
           $setOnInsert: { teamId: teamId },
-          $set: update
+          $set: newData
         },
         upsert: true,
       },
@@ -56,7 +54,7 @@ const bulkWriteStandings = (apiStandings) => {
   }))
 }
 
-const filterStandings = (apiData) => {
+const mapDataToDatabaseStandings = (apiData) => {
   return apiData.map((team) => {
     return {
       teamId: team.teamId,
