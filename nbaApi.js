@@ -1,27 +1,17 @@
 const unirest = require("unirest");
 
-const standings = () => {
+const standings = async () => {
   const url = "https://api-nba-v1.p.rapidapi.com/standings/standard/2019"
-
-  return new Promise((resolve, reject) => {
-    httpRequest(url)
-    .then(res => resolve(res))
-    .catch(err => reject(err))
-  })
+  return httpRequest(url)
 }
 
-const teamInfo = (teamId) => {
+const teamInfo = async (teamId) => {
   const url = `https://api-nba-v1.p.rapidapi.com/teams/teamId/${teamId}`;
-
-  return new Promise((resolve, reject) => {
-    httpRequest(url)
-    .then(res => resolve(res))
-    .catch(err => reject(err))
-  })
+  return httpRequest(url)
 }
 
-const httpRequest = (url) => {
-  return new Promise((resolve, reject) => {
+const httpRequest = async (url) => {
+  return await new Promise((resolve, reject) => {
     unirest.get(url)
     .headers({
       "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
