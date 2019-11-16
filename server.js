@@ -24,7 +24,10 @@ db.connect()
       cronTime:'0 */30 * * * *',
       onTick: () => {
         db.updateStandings()
-        .then(() => console.log(`Updated standings`))
+        .then(res => {
+          console.log(`\nUpdated standings`)
+          console.log(res)
+        })
         .catch(err => console.log(`Failed to update standings: ${err}`))
       },
       start: true,
