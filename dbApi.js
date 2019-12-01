@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 const nbaApi = require('./nbaApi')
+const CronJob = require('cron').CronJob;
 
 let Team;
 
@@ -104,9 +105,32 @@ const mapDataToDatabaseTeamInfo = (apiData) => {
   })
 }
 
+const startCronJob = async () => {
+  return await new Promise((resolve, reject) => {
+    new CronJob({
+      cronTime:'0 */30 * * * *',
+      onTick: () => {
+        updateStandings()
+        .then(res => {
+          console.log(`\nUpdated standings`)
+          console.log(res)
+          resolve()
+        })
+        .catch(err => {
+          console.log(`Failed to update standings: ${err}`)
+          reject(err)
+        })
+      },
+      start: true,
+      runOnInit: true, 
+    })
+  })
+}
+
 module.exports = {
   connect,
   getTeams,
   updateStandings,
   ensureDataExists,
+  startCronJob
 }
