@@ -29,6 +29,7 @@ const connect = async () => {
     isWinStreak: String,
     lastTenWin: String,
     lastTenLoss: String,
+    gamesBehind: String,
   })
 
   Team = mongoose.model('Team', teamSchema)
@@ -101,6 +102,7 @@ const mapDataToDatabaseStandings = (apiData) => {
       isWinStreak: team.winStreak,
       lastTenWin: team.lastTenWin,
       lastTenLoss: team.lastTenLoss,
+      gamesBehind: team.gamesBehind,
     }
   })
 }
