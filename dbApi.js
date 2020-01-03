@@ -23,7 +23,10 @@ const connect = async () => {
     win: String,
     loss: String,
     conference: String,
-    rank: String
+    rank: String,
+    winPercentage: String,
+    streak: String,
+    isWinStreak: String,
   })
 
   Team = mongoose.model('Team', teamSchema)
@@ -91,6 +94,9 @@ const mapDataToDatabaseStandings = (apiData) => {
       loss: team.loss,
       conference: team.conference.name,
       rank: team.conference.rank,
+      winPercentage: team.winPercentage,
+      streak: team.streak,
+      isWinStreak: team.winStreak,
     }
   })
 }
