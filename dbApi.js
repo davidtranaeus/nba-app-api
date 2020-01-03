@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 const nbaApi = require('./nbaApi')
 const CronJob = require('cron').CronJob;
+const teamLogos = require('./assets/team-logos.json')
 
 let Team;
 
@@ -17,6 +18,7 @@ const connect = async () => {
     city: String,
     fullName: String,
     nickname: String,
+    shortName: String,
     logo: String,
     win: String,
     loss: String,
@@ -100,7 +102,8 @@ const mapDataToDatabaseTeamInfo = (apiData) => {
       city: team.city,
       fullName: team.fullName,
       nickname: team.nickname,
-      logo: team.logo,
+      shortName: team.shortName,
+      logo: teamLogos[team.shortName],
     }
   })
 }

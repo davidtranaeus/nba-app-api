@@ -19,4 +19,4 @@ db.connect()
 .then(() => {
   app.listen(port, () => console.log(`Listening on port ${port}`))
 })
-.catch((err) => console.log(`Could not connect to database: ${err}`))
+.catch((err) => console.log(`Could not start the server: ${err}`))
