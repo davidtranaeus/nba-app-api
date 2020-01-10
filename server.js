@@ -5,7 +5,23 @@ const db = require('./dbApi');
 
 const port = process.env.PORT || 3001;
 const app = express();
-app.use(cors());
+
+const whitelist = [
+  'http://localhost:3000', 
+  'http://nba-app-client.s3-website.eu-north-1.amazonaws.com'
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if(!origin) return callback(null, true); // eg curl requests
+
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}))
 
 app.get('/teams', (req, res) => {
   db.getTeams()
