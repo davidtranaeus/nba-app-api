@@ -1,17 +1,17 @@
 const unirest = require("unirest");
 
-const standings = async () => {
+const standings = () => {
   const url = "https://api-nba-v1.p.rapidapi.com/standings/standard/2019"
   return httpRequest(url)
 }
 
-const teamInfo = async (teamId) => {
+const teamInfo = teamId => {
   const url = `https://api-nba-v1.p.rapidapi.com/teams/teamId/${teamId}`;
   return httpRequest(url)
 }
 
-const httpRequest = async (url) => {
-  return await new Promise((resolve, reject) => {
+const httpRequest = url => {
+  return new Promise((resolve, reject) => {
     unirest.get(url)
     .headers({
       "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
