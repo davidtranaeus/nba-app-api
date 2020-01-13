@@ -5,7 +5,7 @@ const db = require('./dbApi');
 
 const port = process.env.PORT || 3001;
 const app = express();
-
+// Test SSH
 const whitelist = [
   'http://localhost:3000', 
   'http://nba-app-client.s3-website.eu-north-1.amazonaws.com'
