@@ -25,7 +25,7 @@ const connect = async () => {
     confRank: String,
     winPct: String,
     streak: String,
-    isWinStreak: String,
+    isWinStreak: Boolean,
     lastTenWin: String,
     lastTenLoss: String,
     gamesBehind: String,
@@ -84,7 +84,6 @@ const mapDataToDatabaseStandings = (apiData) => {
       teamId: team.teamId,
       win: team.win,
       loss: team.loss,
-      confName: team.confName,
       confRank: team.confRank,
       winPct: team.winPct,
       streak: team.streak,
@@ -103,6 +102,7 @@ const mapDataToDatabaseTeamInfo = (apiData) => {
       fullName: team.fullName,
       nickname: team.nickname,
       tricode: team.tricode,
+      confName: team.confName,
       logo: teamLogos[team.tricode],
     }
   })
