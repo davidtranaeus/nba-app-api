@@ -15,16 +15,15 @@ const connect = async () => {
 
   const teamSchema = new mongoose.Schema({
     teamId: String,
-    city: String,
     fullName: String,
     nickname: String,
-    shortName: String,
+    tricode: String,
     logo: String,
     win: String,
     loss: String,
-    conference: String,
-    rank: String,
-    winPercentage: String,
+    confName: String,
+    confRank: String,
+    winPct: String,
     streak: String,
     isWinStreak: String,
     lastTenWin: String,
@@ -35,45 +34,35 @@ const connect = async () => {
   Team = mongoose.model('Team', teamSchema)
 }
 
-const getTeams = async () => {
-  return await Team.find()
+const teams = () => {
+  return Team.find()
 }
 
 const updateStandings = async () => {
   const data = await nbaApi.standings()
-  const standings = mapDataToDatabaseStandings(data.api.standings)
+  const standings = mapDataToDatabaseStandings(data)
   const result = await bulkUpdate(standings)
-
   return result
 }
 
 const updateTeamInfo = async () => {
-  const teams = await getTeams();
-
-  const promises = teams.map(async team => {
-    const res = await nbaApi.teamInfo(team.teamId);
-    return res.api.teams[0]
-  })
-
-  const apiData = await Promise.all(promises);
-  
-  const teamInfo = mapDataToDatabaseTeamInfo(apiData)
+  const data = await nbaApi.teams();
+  const teamInfo = mapDataToDatabaseTeamInfo(data)
   const result = await bulkUpdate(teamInfo)
-
   return result
 }
 
-const ensureDataExists = async () => {
-  const teams = await getTeams();
+const ensureTeamsExist = async () => {
+  const allTeams = await teams();
 
-  if (teams.length === 0) {
-    console.log('Database is empty. Gathering data..')
-    await updateStandings();
+  if (allTeams.length === 0) {
+    console.log('Database is empty. Gathering team info and current standings..')
     await updateTeamInfo();
+    await updateStandings();
   }
 }
 
-const bulkUpdate = (updates) => {
+const bulkUpdate = updates => {
   return Team.bulkWrite(updates.map((update) => {
     const { teamId, ...newData } = update;
     return {
@@ -95,11 +84,11 @@ const mapDataToDatabaseStandings = (apiData) => {
       teamId: team.teamId,
       win: team.win,
       loss: team.loss,
-      conference: team.conference.name,
-      rank: team.conference.rank,
-      winPercentage: team.winPercentage,
+      confName: team.confName,
+      confRank: team.confRank,
+      winPct: team.winPct,
       streak: team.streak,
-      isWinStreak: team.winStreak,
+      isWinStreak: team.isWinStreak,
       lastTenWin: team.lastTenWin,
       lastTenLoss: team.lastTenLoss,
       gamesBehind: team.gamesBehind,
@@ -111,24 +100,22 @@ const mapDataToDatabaseTeamInfo = (apiData) => {
   return apiData.map(team => {
     return {
       teamId: team.teamId,
-      city: team.city,
       fullName: team.fullName,
       nickname: team.nickname,
-      shortName: team.shortName,
-      logo: teamLogos[team.shortName],
+      tricode: team.tricode,
+      logo: teamLogos[team.tricode],
     }
   })
 }
 
-const startCronJob = async () => {
-  return await new Promise((resolve, reject) => {
+const startRegularUpdates = () => {
+  return new Promise((resolve, reject) => {
     new CronJob({
       cronTime:'0 */30 * * * *',
       onTick: () => {
         updateStandings()
-        .then(res => {
-          console.log(`\nUpdated standings`)
-          console.log(res)
+        .then(() => {
+          console.log("Cron job started")
           resolve()
         })
         .catch(err => {
@@ -144,8 +131,7 @@ const startCronJob = async () => {
 
 module.exports = {
   connect,
-  getTeams,
-  updateStandings,
-  ensureDataExists,
-  startCronJob
+  teams,
+  ensureTeamsExist,
+  startRegularUpdates
 }

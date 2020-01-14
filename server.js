@@ -24,14 +24,14 @@ app.use(cors({
 }))
 
 app.get('/teams', (req, res) => {
-  db.getTeams()
+  db.teams()
   .then(teams => { res.json(teams); })
   .catch(err => { res.status(500).send(`An error occured: ${err}`); })
 })
 
 db.connect()
-.then(() => { return db.ensureDataExists(); })
-.then(() => { return db.startCronJob(); })
+.then(() => { return db.ensureTeamsExist(); })
+.then(() => { return db.startRegularUpdates(); })
 .then(() => {
   app.listen(port, () => console.log(`Listening on port ${port}`))
 })

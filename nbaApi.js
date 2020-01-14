@@ -1,22 +1,23 @@
 const unirest = require("unirest");
 
-const standings = () => {
-  const url = "https://api-nba-v1.p.rapidapi.com/standings/standard/2019"
-  return httpRequest(url)
+
+const teams = async () => {
+  const url = "http://data.nba.net/data/10s/prod/v1/2019/teams.json" // Hårdkodat år
+  const response = await newHttpRequest(url)
+  const allTeams = response["league"]["standard"];
+  const nbaTeams = allTeams.filter(team => team.isNBAFranchise === true);
+  return nbaTeams;
 }
 
-const teamInfo = teamId => {
-  const url = `https://api-nba-v1.p.rapidapi.com/teams/teamId/${teamId}`;
-  return httpRequest(url)
+const standings = async () => {
+  const url = "http://data.nba.net/data/10s/prod/v1/current/standings_all_no_sort_keys.json"
+  const response = await newHttpRequest(url)
+  return response["league"]["standard"]["teams"]
 }
 
-const httpRequest = url => {
+const newHttpRequest = url => {
   return new Promise((resolve, reject) => {
     unirest.get(url)
-    .headers({
-      "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
-      "x-rapidapi-key": process.env.API_KEY
-    })
     .end((response) => {
       if (response.error) {
         reject(response.error)
@@ -29,5 +30,5 @@ const httpRequest = url => {
 
 module.exports = {
   standings,
-  teamInfo
+  teams
 }
