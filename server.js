@@ -31,7 +31,10 @@ app.get('/teams', (req, res) => {
 
 db.connect()
 .then(() => { return db.ensureTeamsExist(); })
-.then(() => { return db.startRegularUpdates(); })
+.then(() => {
+  console.log("Cron job started")
+  return db.startRegularUpdates();
+ })
 .then(() => {
   app.listen(port, () => console.log(`Listening on port ${port}`))
 })

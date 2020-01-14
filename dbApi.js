@@ -78,7 +78,7 @@ const bulkUpdate = updates => {
   }))
 }
 
-const mapDataToDatabaseStandings = (apiData) => {
+const mapDataToDatabaseStandings = apiData => {
   return apiData.map(team => {
     return {
       teamId: team.teamId,
@@ -95,7 +95,7 @@ const mapDataToDatabaseStandings = (apiData) => {
   })
 }
 
-const mapDataToDatabaseTeamInfo = (apiData) => {
+const mapDataToDatabaseTeamInfo = apiData => {
   return apiData.map(team => {
     return {
       teamId: team.teamId,
@@ -115,7 +115,7 @@ const startRegularUpdates = () => {
       onTick: () => {
         updateStandings()
         .then(() => {
-          console.log("Cron job started")
+          console.log("Updated standings")
           resolve()
         })
         .catch(err => {
