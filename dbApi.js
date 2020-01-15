@@ -1,9 +1,11 @@
-var mongoose = require('mongoose');
 const nbaApi = require('./nbaApi')
 const CronJob = require('cron').CronJob;
 const teamLogos = require('./assets/team-logos.json')
 
-let Team;
+// Mongoose setup
+const mongoose = require('mongoose');
+const models = require('./models')(mongoose);
+let Teams;
 
 const connect = async () => {
   // async functions returns a promise, automatically resolves, rejects
@@ -12,30 +14,11 @@ const connect = async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-
-  const teamSchema = new mongoose.Schema({
-    teamId: String,
-    fullName: String,
-    nickname: String,
-    tricode: String,
-    logo: String,
-    win: String,
-    loss: String,
-    confName: String,
-    confRank: String,
-    winPct: String,
-    streak: String,
-    isWinStreak: Boolean,
-    lastTenWin: String,
-    lastTenLoss: String,
-    gamesBehind: String,
-  })
-
-  Team = mongoose.model('Team', teamSchema)
+  Teams = models.Teams;
 }
 
 const teams = () => {
-  return Team.find()
+  return Teams.find()
 }
 
 const updateStandings = async () => {
@@ -56,14 +39,14 @@ const ensureTeamsExist = async () => {
   const allTeams = await teams();
 
   if (allTeams.length === 0) {
-    console.log('Database is empty. Gathering team info and current standings..')
+    console.log('Database is empty. Gathering team info..')
     await updateTeamInfo();
-    await updateStandings();
+    // await updateStandings();
   }
 }
 
 const bulkUpdate = updates => {
-  return Team.bulkWrite(updates.map((update) => {
+  return Teams.bulkWrite(updates.map((update) => {
     const { teamId, ...newData } = update;
     return {
       updateOne: {
