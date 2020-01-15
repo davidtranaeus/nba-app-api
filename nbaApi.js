@@ -14,10 +14,17 @@ const standings = async () => {
   return response["league"]["standard"]["teams"]
 }
 
+const games = async () => {
+  const url = "http://data.nba.net/prod/v2/2019/schedule.json" // Hårdkodat
+  const response = await httpRequest(url)
+  const allGames = response["league"]["standard"];
+  return allGames.filter(game => !Object.prototype.hasOwnProperty.call(game, "tags"))
+}
+
 const httpRequest = url => {
   return new Promise((resolve, reject) => {
     unirest.get(url)
-    .end((response) => {
+    .end(response => {
       if (response.error) {
         reject(response.error)
       } else {
@@ -29,5 +36,6 @@ const httpRequest = url => {
 
 module.exports = {
   standings,
-  teams
+  teams,
+  games
 }

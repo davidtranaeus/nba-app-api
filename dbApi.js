@@ -1,11 +1,14 @@
-const nbaApi = require('./nbaApi')
+const nbaApi = require('./nbaApi');
 const CronJob = require('cron').CronJob;
-const teamLogos = require('./assets/team-logos.json')
-
-// Mongoose setup
+const utils = require('./utils');
 const mongoose = require('mongoose');
 const models = require('./models')(mongoose);
-let Teams;
+
+const TEAM_KEY = 'teamId'
+const GAME_KEY = 'gameId'
+
+let Team;
+let Game;
 
 const connect = async () => {
   // async functions returns a promise, automatically resolves, rejects
@@ -14,81 +17,60 @@ const connect = async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  Teams = models.Teams;
+  Team = models.Team;
+  Game = models.Game;
 }
 
-const teams = () => {
-  return Teams.find()
+const getTeams = () => {
+  return Team.find();
+}
+
+const getGames = () => {
+  return Game.find();
+}
+
+const ensureTeamsExist = async () => {
+  const allTeams = await getTeams();
+
+  if (allTeams.length === 0) {
+    console.log('Database is empty. Gathering team info..')
+    await updateTeamInfo();
+    await updateStandings();
+    await updateGameResults();
+  }
 }
 
 const updateStandings = async () => {
   const data = await nbaApi.standings()
-  const standings = mapDataToDatabaseStandings(data)
-  const result = await bulkUpdate(standings)
+  const standings = utils.mapStandingsToSchema(data)
+  const result = await bulkUpdate(Team, TEAM_KEY, standings)
   return result
 }
 
 const updateTeamInfo = async () => {
   const data = await nbaApi.teams();
-  const teamInfo = mapDataToDatabaseTeamInfo(data)
-  const result = await bulkUpdate(teamInfo)
+  const teams = utils.mapTeamsToSchema(data)
+  const result = await bulkUpdate(Team, TEAM_KEY, teams)
   return result
 }
 
-const ensureTeamsExist = async () => {
-  const allTeams = await teams();
-
-  if (allTeams.length === 0) {
-    console.log('Database is empty. Gathering team info..')
-    await updateTeamInfo();
-    // await updateStandings();
-  }
+const updateGameResults = async () => {
+  const data = await nbaApi.games();
+  const games = utils.mapGamesToSchema(data);
+  const result = await bulkUpdate(Game, GAME_KEY, games);
+  return result;
 }
 
-const bulkUpdate = updates => {
-  return Teams.bulkWrite(updates.map((update) => {
-    const { teamId, ...newData } = update;
+const bulkUpdate = (model, key, updates) => {
+  return model.bulkWrite(updates.map((update) => {
     return {
       updateOne: {
-        filter: { teamId: teamId },
-        update: {
-          $setOnInsert: { teamId: teamId },
-          $set: newData
-        },
+        filter: { key: update[key] },
+        update: { $set: update },
         upsert: true,
       },
     }
   }))
-}
-
-const mapDataToDatabaseStandings = apiData => {
-  return apiData.map(team => {
-    return {
-      teamId: team.teamId,
-      win: team.win,
-      loss: team.loss,
-      confRank: team.confRank,
-      winPct: team.winPct,
-      streak: team.streak,
-      isWinStreak: team.isWinStreak,
-      lastTenWin: team.lastTenWin,
-      lastTenLoss: team.lastTenLoss,
-      gamesBehind: team.gamesBehind,
-    }
-  })
-}
-
-const mapDataToDatabaseTeamInfo = apiData => {
-  return apiData.map(team => {
-    return {
-      teamId: team.teamId,
-      fullName: team.fullName,
-      nickname: team.nickname,
-      tricode: team.tricode,
-      confName: team.confName,
-      logo: teamLogos[team.tricode],
-    }
-  })
 }
 
 const startRegularUpdates = () => {
@@ -96,12 +78,10 @@ const startRegularUpdates = () => {
     new CronJob({
       cronTime:'0 */30 * * * *',
       onTick: () => {
-        updateStandings()
-        .then(() => {
+        updateStandings().then(() => {
           console.log("Updated standings")
           resolve()
-        })
-        .catch(err => {
+        }).catch(err => {
           console.log(`Failed to update standings: ${err}`)
           reject(err)
         })
@@ -114,7 +94,8 @@ const startRegularUpdates = () => {
 
 module.exports = {
   connect,
-  teams,
+  getTeams,
+  getGames,
   ensureTeamsExist,
   startRegularUpdates
 }

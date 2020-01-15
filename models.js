@@ -1,4 +1,4 @@
-module.exports = (mongoose) => {
+module.exports = mongoose => {
   const teamSchema = new mongoose.Schema({
     teamId: String,
     fullName: String,
@@ -17,8 +17,24 @@ module.exports = (mongoose) => {
     gamesBehind: String,
   })
 
+  const gameSchema = new mongoose.Schema({
+    gameId: String,
+    statusNum: Number,
+    startDateEastern: String,
+    startTimeUTC: Date,
+    hTeam: {
+      teamId: String,
+      score: String
+    },
+    vTeam: {
+      teamId: String,
+      score: String
+    }
+  })
+
   const models = {
-    Teams: mongoose.model('Team', teamSchema)
+    Team: mongoose.model('Team', teamSchema),
+    Game: mongoose.model('Game', gameSchema)
   }
   
   return models;

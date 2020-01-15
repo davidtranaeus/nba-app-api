@@ -24,8 +24,14 @@ app.use(cors({
 }))
 
 app.get('/teams', (req, res) => {
-  db.teams()
+  db.getTeams()
   .then(teams => { res.json(teams); })
+  .catch(err => { res.status(500).send(`An error occured: ${err}`); })
+})
+
+app.get('/games', (req, res) => {
+  db.getGames()
+  .then(games => { res.json(games); })
   .catch(err => { res.status(500).send(`An error occured: ${err}`); })
 })
 
