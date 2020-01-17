@@ -5,7 +5,7 @@ const db = require('./db');
 
 const port = process.env.PORT || 3001;
 const app = express();
-
+// Test
 app.use(cors())
 
 app.get('/teams', (req, res) => {
