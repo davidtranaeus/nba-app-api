@@ -62,7 +62,7 @@ const updateGameResults = async () => {
 }
 
 const bulkUpdate = (model, key, updates) => {
-  return model.bulkWrite(updates.map((update) => {
+  return model.bulkWrite(updates.map(update => {
     return {
       updateOne: {
         filter: { key: update[key] },
