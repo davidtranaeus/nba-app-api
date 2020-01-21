@@ -18,7 +18,15 @@ const games = async () => {
   const url = "http://data.nba.net/prod/v2/2019/schedule.json" // Hårdkodat
   const response = await httpRequest(url)
   const allGames = response["league"]["standard"];
-  return allGames.filter(game => !Object.prototype.hasOwnProperty.call(game, "tags"))
+  return allGames.filter(game => {
+    if (Object.prototype.hasOwnProperty.call(game, "tags")) {
+      return false
+    } else if (game.seasonStageId !== 2) {
+      return false
+    } else {
+      return true
+    }
+  })
 }
 
 const httpRequest = url => {
