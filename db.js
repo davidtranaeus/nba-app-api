@@ -78,7 +78,9 @@ const startRegularUpdates = () => {
     new CronJob({
       cronTime:'0 */30 * * * *',
       onTick: () => {
-        updateStandings().then(() => {
+        updateStandings()
+        .then(() => updateGameResults())
+        .then(() => {
           console.log("Updated standings")
           resolve()
         }).catch(err => {
